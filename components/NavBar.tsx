@@ -6,15 +6,18 @@ import { supabase } from '@/lib/supabaseClient';
 
 export default function NavBar() {
   const [userEmail, setUserEmail] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let mounted = true;
     supabase.auth.getUser().then(({ data }) => {
       if (!mounted) return;
       setUserEmail(data.user?.email ?? null);
+      setLoading(false);
     });
     const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
       setUserEmail(session?.user?.email ?? null);
+      setLoading(false);
     });
     return () => {
       sub.subscription.unsubscribe();
@@ -42,7 +45,7 @@ export default function NavBar() {
             <Link href="/rooms" className="rounded-lg px-3 py-1.5 text-sm text-slate-300 hover:bg-slate-800">
               Rooms
             </Link>
-            {userEmail ? (
+            {loading ? null : userEmail ? (
               <>
                 <span className="hidden text-xs text-slate-400 sm:inline">{userEmail}</span>
                 <button onClick={signOut} className="rounded-lg bg-slate-800 px-3 py-1.5 text-sm text-slate-200 hover:bg-slate-700">Sign out</button>

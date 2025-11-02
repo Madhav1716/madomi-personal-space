@@ -16,6 +16,9 @@ export default function RoomPage() {
   const router = useRouter();
   const roomId = useMemo(() => String(params?.id || ''), [params]);
   const [mode, setMode] = useState<RoomMode>('youtube');
+  const [roomName, setRoomName] = useState<string>('Room');
+  const [ownerId, setOwnerId] = useState<string | null>(null);
+  const [myUserId, setMyUserId] = useState<string | null>(null);
   const [joinCode, setJoinCode] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [me, setMe] = useState<string>('');
@@ -27,6 +30,7 @@ export default function RoomPage() {
       if (!data.user) router.push('/login');
       const display = data.user?.user_metadata?.full_name || data.user?.email?.split('@')[0] || 'You';
       setMe(display);
+      setMyUserId(data.user?.id ?? null);
     });
   }, [router]);
 
@@ -39,12 +43,14 @@ export default function RoomPage() {
       try {
         const { data } = await supabase
           .from('rooms')
-          .select('mode, join_code')
+          .select('mode, join_code, name, owner_id')
           .eq('id', roomId)
           .single();
         if (!active) return;
         if (data?.mode === 'spotify' || data?.mode === 'youtube') setMode(data.mode);
         if (data?.join_code) setJoinCode(data.join_code);
+        if (data?.name) setRoomName(data.name);
+        if (data?.owner_id) setOwnerId(data.owner_id);
       } catch {
         // ignore
       } finally {
@@ -99,8 +105,8 @@ export default function RoomPage() {
                 </svg>
               </div>
               <div>
-                <h1 className="text-xl font-bold text-white">Room</h1>
-                <p className="text-sm text-slate-400">Welcome, {me}</p>
+                <h1 className="text-xl font-bold text-white">{roomName}</h1>
+                <p className="text-sm text-slate-400">{ownerId && myUserId && ownerId === myUserId ? 'Created by you' : 'Created by owner'}</p>
               </div>
             </div>
             <div className="flex items-center gap-2">

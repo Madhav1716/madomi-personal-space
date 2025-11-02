@@ -19,9 +19,11 @@ export default function RoomsPage() {
     try {
       const { data: userData } = await supabase.auth.getUser();
       if (!userData.user) { router.push('/login'); return; }
+      const name = roomName.trim();
+      if (!name) throw new Error('Room name is required');
       const code = Math.random().toString(36).slice(2, 8).toUpperCase();
       const { data, error } = await supabase.from('rooms').insert({
-        name: roomName || 'Our Music Room',
+        name,
         mode,
         owner_id: userData.user.id,
         join_code: code,

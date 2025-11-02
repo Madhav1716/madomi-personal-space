@@ -17,6 +17,8 @@ export default function SpotifyPlayer({ uri }: Props) {
   const playerRef = useRef<any>(null);
   const [ready, setReady] = useState(false);
   const [authorized, setAuthorized] = useState(false);
+  const [deviceId, setDeviceId] = useState<string | null>(null);
+  const [meta, setMeta] = useState<{ image: string | null; name: string; artists: string } | null>(null);
 
   // Load SDK
   useEffect(() => {
@@ -47,7 +49,7 @@ export default function SpotifyPlayer({ uri }: Props) {
         getOAuthToken: (cb: (t: string) => void) => cb(access_token),
         volume: 0.8,
       });
-      player.addListener('ready', () => setReady(true));
+      player.addListener('ready', ({ device_id }: any) => { setReady(true); setDeviceId(device_id); });
       player.addListener('initialization_error', ({ message }: any) => console.error(message));
       player.addListener('authentication_error', ({ message }: any) => console.error(message));
       player.addListener('account_error', ({ message }: any) => console.error(message));
@@ -57,9 +59,25 @@ export default function SpotifyPlayer({ uri }: Props) {
   }, []);
 
   useEffect(() => {
-    if (!uri || !playerRef.current) return;
-    // Playback is controlled by server broadcast in a complete implementation.
-    // Here we just render UI; control actions would live elsewhere.
+    if (!uri || !playerRef.current || !deviceId) return;
+    // Start playback on this device
+    fetch('/api/spotify/play', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ deviceId, uri }),
+    }).catch(() => {});
+  }, [uri, deviceId]);
+
+  // Fetch metadata for display
+  useEffect(() => {
+    if (!uri) { setMeta(null); return; }
+    fetch(`/api/spotify/track?uri=${encodeURIComponent(uri)}`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        if (!d) return;
+        setMeta({ image: d.image, name: d.name, artists: d.artists });
+      })
+      .catch(() => {});
   }, [uri]);
 
   if (!authorized) {
@@ -88,9 +106,18 @@ export default function SpotifyPlayer({ uri }: Props) {
 
   return (
     <div className="flex aspect-video items-center justify-center rounded-xl border border-slate-700/50 bg-slate-900">
-      <div className="text-center">
-        <div className="mb-2 text-xs uppercase tracking-wider text-emerald-400">Spotify</div>
-        <div className="text-slate-200">{uri}</div>
+      <div className="flex items-center gap-4 p-4">
+        {meta?.image ? (
+          <img src={meta.image} alt={meta.name} className="h-20 w-20 rounded object-cover" />
+        ) : (
+          <div className="h-20 w-20 rounded bg-slate-800" />
+        )}
+        <div>
+          <div className="text-xs uppercase tracking-wider text-emerald-400">Spotify</div>
+          <div className="text-slate-200 line-clamp-1">{meta?.name || uri}</div>
+          <div className="text-sm text-slate-400 line-clamp-1">{meta?.artists || ''}</div>
+          {!authorized && <div className="mt-1 text-xs text-slate-500">Login to Spotify to hear playback</div>}
+        </div>
       </div>
     </div>
   );
