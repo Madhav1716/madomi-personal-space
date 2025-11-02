@@ -42,7 +42,7 @@ export default function Chat({ name, roomId }: Props) {
   }, [messages]);
 
   return (
-    <div className="flex h-[500px] flex-col rounded-xl bg-slate-800/60 backdrop-blur-sm border border-slate-700/50 shadow-xl">
+    <div className="flex h-[60vh] md:h-[500px] flex-col rounded-xl bg-slate-800/60 backdrop-blur-sm border border-slate-700/50 shadow-xl">
       {/* Header */}
       <div className="border-b border-slate-700/50 p-4">
         <div className="flex items-center justify-between">

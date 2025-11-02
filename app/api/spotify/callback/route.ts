@@ -6,7 +6,7 @@ export async function GET(req: NextRequest) {
 
   const clientId = process.env.SPOTIFY_CLIENT_ID as string;
   const clientSecret = process.env.SPOTIFY_CLIENT_SECRET as string;
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL as string;
+  const baseUrl = req.nextUrl.origin;
 
   if (!clientId || !clientSecret || !baseUrl) {
     return new NextResponse('Missing Spotify env vars', { status: 500 });

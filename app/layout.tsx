@@ -18,6 +18,12 @@ export const metadata: Metadata = {
   description: "Private rooms to listen together in perfect sync. YouTube or Spotify, chat and hearts, all in one place.",
 };
 
+export const viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  themeColor: '#0f172a',
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{

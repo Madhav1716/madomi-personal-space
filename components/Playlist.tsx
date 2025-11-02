@@ -124,7 +124,7 @@ export default function Playlist({ playlist, current, onPlay, mode = 'youtube', 
           </div>
         )}
 
-        <div className="max-h-80 space-y-1.5 overflow-y-auto">
+        <div className="max-h-64 md:max-h-80 space-y-1.5 overflow-y-auto">
           {playlist.length === 0 ? (
             <div className="py-8 text-center">
               <svg

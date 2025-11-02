@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 
 const SPOTIFY_AUTH_URL = 'https://accounts.spotify.com/authorize';
 const SCOPES = [
@@ -9,11 +9,11 @@ const SCOPES = [
   'user-read-playback-state',
 ].join(' ');
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   const clientId = process.env.SPOTIFY_CLIENT_ID;
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
-  if (!clientId || !baseUrl) {
-    return new NextResponse('Missing SPOTIFY_CLIENT_ID or NEXT_PUBLIC_BASE_URL', { status: 500 });
+  const baseUrl = req.nextUrl.origin; // derive from request to support previews
+  if (!clientId) {
+    return new NextResponse('Missing SPOTIFY_CLIENT_ID', { status: 500 });
   }
   const params = new URLSearchParams({
     client_id: clientId,
