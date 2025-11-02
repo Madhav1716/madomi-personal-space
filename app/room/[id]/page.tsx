@@ -33,13 +33,27 @@ export default function RoomPage() {
   // Load room (mode)
   useEffect(() => {
     if (!roomId) return;
+    let active = true;
     setLoading(true);
-    supabase.from('rooms').select('mode, join_code').eq('id', roomId).single()
-      .then(({ data }) => {
+    (async () => {
+      try {
+        const { data } = await supabase
+          .from('rooms')
+          .select('mode, join_code')
+          .eq('id', roomId)
+          .single();
+        if (!active) return;
         if (data?.mode === 'spotify' || data?.mode === 'youtube') setMode(data.mode);
         if (data?.join_code) setJoinCode(data.join_code);
-      })
-      .finally(() => setLoading(false));
+      } catch {
+        // ignore
+      } finally {
+        if (active) setLoading(false);
+      }
+    })();
+    return () => {
+      active = false;
+    };
   }, [roomId]);
 
   // Realtime listeners
