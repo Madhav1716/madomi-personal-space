@@ -38,19 +38,34 @@ export default function Playlist({ playlist, current, onPlay, mode = 'youtube', 
   const handlePrompt = () => {
     const id = prompt(
       mode === 'spotify'
-        ? 'Enter Spotify URI or URL:\n(e.g., spotify:track:... or https://open.spotify.com/track/...)'
+        ? 'Enter Spotify Track/Playlist URI or URL:\n(e.g., spotify:track:... or https://open.spotify.com/track/... or https://open.spotify.com/playlist/...)'
         : 'Enter YouTube Video ID or URL:\n(e.g., dQw4w9WgXcQ or https://youtube.com/watch?v=dQw4w9WgXcQ)'
     );
     if (!id?.trim()) return;
     
     if (mode === 'spotify') {
       try {
-        // Extract Spotify URI
-        const uri = id.includes('open.spotify.com')
-          ? id.match(/open\.spotify\.com\/track\/([^?]+)/)?.[1]
-            ? `spotify:track:${id.match(/open\.spotify\.com\/track\/([^?]+)/)?.[1]}`
-            : id.trim()
-          : id.trim();
+        // Extract Spotify URI (handles tracks, playlists, albums)
+        let uri = id.trim();
+        if (id.includes('open.spotify.com')) {
+          // Extract track
+          const trackMatch = id.match(/open\.spotify\.com\/track\/([^?]+)/);
+          if (trackMatch) {
+            uri = `spotify:track:${trackMatch[1]}`;
+          } else {
+            // Extract playlist
+            const playlistMatch = id.match(/open\.spotify\.com\/playlist\/([^?]+)/);
+            if (playlistMatch) {
+              uri = `spotify:playlist:${playlistMatch[1]}`;
+            } else {
+              // Extract album
+              const albumMatch = id.match(/open\.spotify\.com\/album\/([^?]+)/);
+              if (albumMatch) {
+                uri = `spotify:album:${albumMatch[1]}`;
+              }
+            }
+          }
+        }
         const newList = playlist.includes(uri) ? playlist : [...playlist, uri];
         const rid = roomId || 'default-room';
         const channel = getRoomChannel(rid);
