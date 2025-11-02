@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { supabase } from '@/lib/supabaseClient';
+import { getSupabaseClient } from '@/lib/supabaseClient';
 import Link from 'next/link';
 
 export default function LoginPage() {
@@ -10,10 +10,13 @@ export default function LoginPage() {
   const [sent, setSent] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const supabase = getSupabaseClient();
+
   const sendMagicLink = async () => {
     setLoading(true);
     setError(null);
     try {
+      const supabase = getSupabaseClient();
       const { error } = await supabase.auth.signInWithOtp({ email, options: { emailRedirectTo: window.location.origin } });
       if (error) throw error;
       setSent(true);
