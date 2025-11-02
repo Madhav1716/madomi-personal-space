@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { supabase } from '@/lib/supabaseClient';
+import { getSupabaseClient } from '@/lib/supabaseClient';
 import type { RoomMode } from '@/types';
 import { useRouter } from 'next/navigation';
 
@@ -17,6 +17,7 @@ export default function RoomsPage() {
     setLoading(true);
     setMessage(null);
     try {
+      const supabase = getSupabaseClient();
       const { data: userData } = await supabase.auth.getUser();
       if (!userData.user) { router.push('/login'); return; }
       const name = roomName.trim();
@@ -43,6 +44,7 @@ export default function RoomsPage() {
     setLoading(true);
     setMessage(null);
     try {
+      const supabase = getSupabaseClient();
       const { data: userData } = await supabase.auth.getUser();
       if (!userData.user) { router.push('/login'); return; }
       const code = joinCode.trim().toUpperCase();

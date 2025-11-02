@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { supabase } from '@/lib/supabaseClient';
+import { getSupabaseClient } from '@/lib/supabaseClient';
 import type { RoomMode, RoomState } from '@/types';
 import { getRoomChannel } from '@/lib/realtime';
 import Player from '@/components/Player';
@@ -26,6 +26,7 @@ export default function RoomPage() {
 
   // Auth guard
   useEffect(() => {
+    const supabase = getSupabaseClient();
     supabase.auth.getUser().then(({ data }) => {
       if (!data.user) router.push('/login');
       const display = data.user?.user_metadata?.full_name || data.user?.email?.split('@')[0] || 'You';
@@ -41,6 +42,7 @@ export default function RoomPage() {
     setLoading(true);
     (async () => {
       try {
+        const supabase = getSupabaseClient();
         const { data } = await supabase
           .from('rooms')
           .select('mode, join_code, name, owner_id')

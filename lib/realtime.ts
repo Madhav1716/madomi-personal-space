@@ -1,10 +1,11 @@
-import { supabase } from '@/lib/supabaseClient';
+import { getSupabaseClient } from '@/lib/supabaseClient';
 import type { RealtimeChannel } from '@supabase/supabase-js';
 
 const roomIdToChannel: Record<string, RealtimeChannel> = {};
 
 export function getRoomChannel(roomId: string): RealtimeChannel {
   if (!roomIdToChannel[roomId]) {
+    const supabase = getSupabaseClient();
     const channel = supabase.channel(`room:${roomId}`, {
       config: { broadcast: { self: true } },
     });

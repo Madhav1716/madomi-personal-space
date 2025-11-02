@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
-import { supabase } from '@/lib/supabaseClient';
+import { getSupabaseClient } from '@/lib/supabaseClient';
 
 export default function NavBar() {
   const [userEmail, setUserEmail] = useState<string | null>(null);
@@ -10,6 +10,7 @@ export default function NavBar() {
 
   useEffect(() => {
     let mounted = true;
+    const supabase = getSupabaseClient();
     supabase.auth.getUser().then(({ data }) => {
       if (!mounted) return;
       setUserEmail(data.user?.email ?? null);
