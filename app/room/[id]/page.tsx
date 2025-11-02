@@ -76,6 +76,10 @@ export default function RoomPage() {
       const { uri, playlist, time } = payload.payload || {};
       setState({ videoId: null, spotifyUri: uri, playlist: playlist || [], time, mode: 'spotify' });
     });
+    channel.on('broadcast', { event: 'sync-time' }, (payload: any) => {
+      const { time } = payload.payload || {};
+      setState((prev) => ({ ...prev, time }));
+    });
   }, [roomId]);
 
   const handleTime = (time: number) => {
@@ -140,9 +144,9 @@ export default function RoomPage() {
                 Loading room…
               </div>
             ) : mode === 'spotify' ? (
-              <SpotifyPlayer uri={state.spotifyUri} />
+              <SpotifyPlayer uri={state.spotifyUri} roomId={roomId} />
             ) : (
-              <Player videoId={state.videoId} onTimeUpdate={handleTime} roomId={roomId} />
+              <Player videoId={state.videoId} onTimeUpdate={handleTime} roomId={roomId} startTime={state.time} />
             )}
             <div className="rounded-xl bg-slate-800/60 backdrop-blur-sm border border-slate-700/50 p-4">
               <div className="grid grid-cols-2 gap-4">

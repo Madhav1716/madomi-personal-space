@@ -8,9 +8,10 @@ interface Props {
   videoId: string | null;
   onTimeUpdate: (time: number) => void;
   roomId?: string;
+  startTime?: number;
 }
 
-export default function Player({ videoId, onTimeUpdate, roomId }: Props) {
+export default function Player({ videoId, onTimeUpdate, roomId, startTime }: Props) {
   const playerRef = useRef<any>(null);
 
   const opts = {
@@ -34,8 +35,12 @@ export default function Player({ videoId, onTimeUpdate, roomId }: Props) {
 
   useEffect(() => {
     if (!videoId || !playerRef.current) return;
-    playerRef.current.loadVideoById(videoId);
-  }, [videoId]);
+    if (startTime && startTime > 0) {
+      playerRef.current.loadVideoById(videoId, startTime);
+    } else {
+      playerRef.current.loadVideoById(videoId);
+    }
+  }, [videoId, startTime]);
 
   // Periodic sync (fallback)
   useEffect(() => {
