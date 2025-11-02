@@ -140,15 +140,23 @@ export default function SpotifyPlayer({ uri, roomId }: Props) {
   useEffect(() => {
     if (!roomId || !authorized) return;
     const channel = getRoomChannel(roomId);
+    let pauseSub: any;
+    let resumeSub: any;
+    
     channel.on('broadcast', { event: 'spotify-pause' }, () => {
       if (playerRef.current) playerRef.current.pause();
+    }).subscribe((status) => {
+      pauseSub = status;
     });
+    
     channel.on('broadcast', { event: 'spotify-resume' }, () => {
       if (playerRef.current) playerRef.current.resume();
+    }).subscribe((status) => {
+      resumeSub = status;
     });
+    
     return () => {
-      channel.off('broadcast', { event: 'spotify-pause' });
-      channel.off('broadcast', { event: 'spotify-resume' });
+      // Supabase handles cleanup automatically when channel is removed
     };
   }, [roomId, authorized]);
 
