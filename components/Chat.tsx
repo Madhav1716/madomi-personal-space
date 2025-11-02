@@ -15,26 +15,40 @@ export default function Chat({ name, roomId }: Props) {
   const endRef = useRef<HTMLDivElement>(null);
 
   const send = () => {
-    if (!msg.trim()) return;
-    const rid = roomId || 'default-room';
-    const channel = getRoomChannel(rid);
-    channel.send({ type: 'broadcast', event: 'chat', payload: { name, message: msg } });
-    setMsg('');
+    if (!msg.trim() || typeof window === 'undefined') return;
+    try {
+      const rid = roomId || 'default-room';
+      const channel = getRoomChannel(rid);
+      channel.send({ type: 'broadcast', event: 'chat', payload: { name, message: msg } });
+      setMsg('');
+    } catch (error) {
+      console.error('Error sending message:', error);
+    }
   };
 
   const sendHeart = () => {
-    const rid = roomId || 'default-room';
-    const channel = getRoomChannel(rid);
-    channel.send({ type: 'broadcast', event: 'chat', payload: { name, message: '❤️' } });
+    if (typeof window === 'undefined') return;
+    try {
+      const rid = roomId || 'default-room';
+      const channel = getRoomChannel(rid);
+      channel.send({ type: 'broadcast', event: 'chat', payload: { name, message: '❤️' } });
+    } catch (error) {
+      console.error('Error sending heart:', error);
+    }
   };
 
   useEffect(() => {
-    const rid = roomId || 'default-room';
-    const channel = getRoomChannel(rid);
-    channel.on('broadcast', { event: 'chat' }, (payload: any) => {
-      const m = payload.payload as Message;
-      setMessages((prev) => [...prev, m]);
-    });
+    if (typeof window === 'undefined') return;
+    try {
+      const rid = roomId || 'default-room';
+      const channel = getRoomChannel(rid);
+      channel.on('broadcast', { event: 'chat' }, (payload: any) => {
+        const m = payload.payload as Message;
+        setMessages((prev) => [...prev, m]);
+      });
+    } catch (error) {
+      console.error('Error setting up chat listener:', error);
+    }
   }, [roomId]);
 
   useEffect(() => {

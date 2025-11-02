@@ -66,34 +66,48 @@ export default function RoomPage() {
 
   // Realtime listeners
   useEffect(() => {
-    if (!roomId) return;
-    const channel = getRoomChannel(roomId);
-    channel.on('broadcast', { event: 'play' }, (payload: any) => {
-      const { videoId, playlist, time } = payload.payload || {};
-      setState({ videoId, playlist: playlist || [], time, mode: 'youtube' });
-    });
-    channel.on('broadcast', { event: 'play-spotify' }, (payload: any) => {
-      const { uri, playlist, time } = payload.payload || {};
-      setState({ videoId: null, spotifyUri: uri, playlist: playlist || [], time, mode: 'spotify' });
-    });
-    channel.on('broadcast', { event: 'sync-time' }, (payload: any) => {
-      const { time } = payload.payload || {};
-      setState((prev) => ({ ...prev, time }));
-    });
+    if (!roomId || typeof window === 'undefined') return;
+    try {
+      const channel = getRoomChannel(roomId);
+      channel.on('broadcast', { event: 'play' }, (payload: any) => {
+        const { videoId, playlist, time } = payload.payload || {};
+        setState({ videoId, playlist: playlist || [], time, mode: 'youtube' });
+      });
+      channel.on('broadcast', { event: 'play-spotify' }, (payload: any) => {
+        const { uri, playlist, time } = payload.payload || {};
+        setState({ videoId: null, spotifyUri: uri, playlist: playlist || [], time, mode: 'spotify' });
+      });
+      channel.on('broadcast', { event: 'sync-time' }, (payload: any) => {
+        const { time } = payload.payload || {};
+        setState((prev) => ({ ...prev, time }));
+      });
+    } catch (error) {
+      console.error('Error setting up realtime listeners:', error);
+    }
   }, [roomId]);
 
   const handleTime = (time: number) => {
-    const channel = getRoomChannel(roomId);
-    channel.send({ type: 'broadcast', event: 'sync-time', payload: { time } });
+    if (typeof window === 'undefined') return;
+    try {
+      const channel = getRoomChannel(roomId);
+      channel.send({ type: 'broadcast', event: 'sync-time', payload: { time } });
+    } catch (error) {
+      console.error('Error syncing time:', error);
+    }
   };
 
   const play = (id: string) => {
-    const newList = state.playlist.includes(id) ? state.playlist : [...state.playlist, id];
-    const channel = getRoomChannel(roomId);
-    if (mode === 'spotify') {
-      channel.send({ type: 'broadcast', event: 'play-spotify', payload: { uri: id, playlist: newList } });
-    } else {
-      channel.send({ type: 'broadcast', event: 'play', payload: { videoId: id, playlist: newList } });
+    if (typeof window === 'undefined') return;
+    try {
+      const newList = state.playlist.includes(id) ? state.playlist : [...state.playlist, id];
+      const channel = getRoomChannel(roomId);
+      if (mode === 'spotify') {
+        channel.send({ type: 'broadcast', event: 'play-spotify', payload: { uri: id, playlist: newList } });
+      } else {
+        channel.send({ type: 'broadcast', event: 'play', payload: { videoId: id, playlist: newList } });
+      }
+    } catch (error) {
+      console.error('Error playing track:', error);
     }
   };
 

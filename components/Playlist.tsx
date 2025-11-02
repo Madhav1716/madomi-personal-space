@@ -17,17 +17,22 @@ export default function Playlist({ playlist, current, onPlay, mode = 'youtube', 
   const [showInput, setShowInput] = useState(false);
 
   const addToPlaylist = (id?: string) => {
+    if (typeof window === 'undefined') return;
     const videoId = id || inputValue.trim();
     if (!videoId) {
       setShowInput(true);
       return;
     }
-    const newList = playlist.includes(videoId) ? playlist : [...playlist, videoId];
-    const rid = roomId || 'default-room';
-    const channel = getRoomChannel(rid);
-    channel.send({ type: 'broadcast', event: 'play', payload: { videoId, playlist: newList } });
-    setInputValue('');
-    setShowInput(false);
+    try {
+      const newList = playlist.includes(videoId) ? playlist : [...playlist, videoId];
+      const rid = roomId || 'default-room';
+      const channel = getRoomChannel(rid);
+      channel.send({ type: 'broadcast', event: 'play', payload: { videoId, playlist: newList } });
+      setInputValue('');
+      setShowInput(false);
+    } catch (error) {
+      console.error('Error adding to playlist:', error);
+    }
   };
 
   const handlePrompt = () => {
@@ -39,18 +44,22 @@ export default function Playlist({ playlist, current, onPlay, mode = 'youtube', 
     if (!id?.trim()) return;
     
     if (mode === 'spotify') {
-      // Extract Spotify URI
-      const uri = id.includes('open.spotify.com')
-        ? id.match(/open\.spotify\.com\/track\/([^?]+)/)?.[1]
-          ? `spotify:track:${id.match(/open\.spotify\.com\/track\/([^?]+)/)?.[1]}`
-          : id.trim()
-        : id.trim();
-      const newList = playlist.includes(uri) ? playlist : [...playlist, uri];
-      const rid = roomId || 'default-room';
-      const channel = getRoomChannel(rid);
-      channel.send({ type: 'broadcast', event: 'play-spotify', payload: { uri, playlist: newList } });
-      setInputValue('');
-      setShowInput(false);
+      try {
+        // Extract Spotify URI
+        const uri = id.includes('open.spotify.com')
+          ? id.match(/open\.spotify\.com\/track\/([^?]+)/)?.[1]
+            ? `spotify:track:${id.match(/open\.spotify\.com\/track\/([^?]+)/)?.[1]}`
+            : id.trim()
+          : id.trim();
+        const newList = playlist.includes(uri) ? playlist : [...playlist, uri];
+        const rid = roomId || 'default-room';
+        const channel = getRoomChannel(rid);
+        channel.send({ type: 'broadcast', event: 'play-spotify', payload: { uri, playlist: newList } });
+        setInputValue('');
+        setShowInput(false);
+      } catch (error) {
+        console.error('Error adding Spotify track:', error);
+      }
       return;
     }
 

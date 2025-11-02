@@ -138,37 +138,33 @@ export default function SpotifyPlayer({ uri, roomId }: Props) {
 
   // Listen for play/pause sync from other users
   useEffect(() => {
-    if (!roomId || !authorized) return;
-    const channel = getRoomChannel(roomId);
-    let pauseSub: any;
-    let resumeSub: any;
-    
-    channel.on('broadcast', { event: 'spotify-pause' }, () => {
-      if (playerRef.current) playerRef.current.pause();
-    }).subscribe((status) => {
-      pauseSub = status;
-    });
-    
-    channel.on('broadcast', { event: 'spotify-resume' }, () => {
-      if (playerRef.current) playerRef.current.resume();
-    }).subscribe((status) => {
-      resumeSub = status;
-    });
-    
-    return () => {
-      // Supabase handles cleanup automatically when channel is removed
-    };
+    if (!roomId || !authorized || typeof window === 'undefined') return;
+    try {
+      const channel = getRoomChannel(roomId);
+      channel.on('broadcast', { event: 'spotify-pause' }, () => {
+        if (playerRef.current) playerRef.current.pause();
+      });
+      channel.on('broadcast', { event: 'spotify-resume' }, () => {
+        if (playerRef.current) playerRef.current.resume();
+      });
+    } catch (error) {
+      console.error('Error setting up Spotify sync:', error);
+    }
   }, [roomId, authorized]);
 
   const togglePlayPause = async () => {
-    if (!playerRef.current || !authorized || !roomId) return;
-    const channel = getRoomChannel(roomId);
-    if (isPlaying) {
-      await playerRef.current.pause();
-      channel.send({ type: 'broadcast', event: 'spotify-pause', payload: {} });
-    } else {
-      await playerRef.current.resume();
-      channel.send({ type: 'broadcast', event: 'spotify-resume', payload: {} });
+    if (!playerRef.current || !authorized || !roomId || typeof window === 'undefined') return;
+    try {
+      const channel = getRoomChannel(roomId);
+      if (isPlaying) {
+        await playerRef.current.pause();
+        channel.send({ type: 'broadcast', event: 'spotify-pause', payload: {} });
+      } else {
+        await playerRef.current.resume();
+        channel.send({ type: 'broadcast', event: 'spotify-resume', payload: {} });
+      }
+    } catch (error) {
+      console.error('Error toggling play/pause:', error);
     }
   };
 
